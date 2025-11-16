@@ -1,3 +1,6 @@
+# For development version, see [pypixelcolor](https://github.com/lucagoc/iPixel-CLI/tree/pypixel-next).
+More info [here](https://github.com/lucagoc/iPixel-CLI/discussions/38).
+
 # iPixel CLI
 
 Python CLI rewrite of the "iPixel Color" application for LED Matrix displays manufactured by Taizhou Yumo Lighting Co., Ltd.
