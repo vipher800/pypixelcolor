@@ -37,66 +37,78 @@ FONT_METRICS: dict[Font, dict[int, dict[str, Any]]] = {
         16: {
             "font_size": 16,
             "offset": (0, -1),
-            "is_16bit": False
+            "is_16bit": False,
+            "pixel_threshold": 70
         },
         20: {
             "font_size": 20,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         24: {
             "font_size": 24,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         32: {
             "font_size": 32,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         }
     },
     Font.VCR_OSD_MONO: {
         16: {
             "font_size": 16,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         20: {
             "font_size": 20,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         24: {
             "font_size": 24,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         32: {
-            "font_size": 32,
-            "offset": (0, 0),
-            "is_16bit": True
+            "font_size": 28,
+            "offset": (-1, 2),
+            "is_16bit": True,
+            "pixel_threshold": 30
         }
     },
     Font.SIMSUN: {
         16: {
             "font_size": 16,
             "offset": (0, 0),
-            "is_16bit": False
+            "is_16bit": False,
+            "pixel_threshold": 70
         },
         20: {
             "font_size": 20,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         24: {
             "font_size": 24,
             "offset": (0, 0),
-            "is_16bit": True
+            "is_16bit": True,
+            "pixel_threshold": 70
         },
         32: {
-            "font_size": 32,
-            "offset": (0, 0),
-            "is_16bit": True
+            "font_size": 33,
+            "offset": (0, -2),
+            "is_16bit": True,
+            "pixel_threshold": 100
         }
     }
 }

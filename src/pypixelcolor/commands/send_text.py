@@ -168,11 +168,20 @@ def char_to_hex(character: str, char_size:int, font_offset: tuple[int, int], fon
         # Draw text in white (255) for pixel-perfect rendering
         d.text(font_offset, character, fill=255, font=font_obj)
 
+        # Determine pixel threshold from FONT_METRICS for the selected font/size
+        pixel_threshold = 100
+        try:
+            font_enum = Font.from_str(font) if not isinstance(font, Font) else font
+            font_metrics = FONT_METRICS.get(font_enum, {})
+            pixel_threshold = font_metrics.get(int(char_size), {}).get("pixel_threshold", pixel_threshold)
+        except Exception:
+            # Fallback to default threshold if anything goes wrong
+            pass
+
         # Apply threshold for pixel-perfect conversion
         def apply_threshold(pixel):
-            PIXEL_THRESHOLD = 70    # Adjust threshold for better accuracy
-            return 255 if pixel > PIXEL_THRESHOLD else 0
-        
+            return 255 if pixel > pixel_threshold else 0
+
         img = img.point(apply_threshold, mode='L')
 
         return charimg_to_hex_string(img)
