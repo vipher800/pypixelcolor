@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "pypixelcolor"
@@ -34,5 +34,7 @@ dev = [
   "pytest-cov>=4.0.0",
 ]
 
-[tool.setuptools.package-data]
-pypixelcolor = ["fonts/*.ttf"]
+[tool.hatch.build]
+include = [
+  "pypixelcolor/fonts/*.ttf",
+]

@@ -64,7 +64,7 @@ async def scan_devices() -> None:
 
 def main() -> None:
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(description="iPixel CLI - BLE Command Tool")
+    parser = argparse.ArgumentParser(description="pypixelcolor - CLI")
     parser.add_argument("--scan", action="store_true", help="Scan for Bluetooth devices")
     parser.add_argument(
         "-c", "--command", action="append", nargs="+", metavar="COMMAND PARAMS",

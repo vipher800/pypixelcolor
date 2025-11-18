@@ -44,6 +44,24 @@ python -m pypixelcolor.websocket --help
 
 See the [wiki](https://github.com/lucagoc/iPixel-CLI/wiki) for more detailed usage instructions.
 
+## Development
+
+This project uses [Hatch](https://hatch.pypa.io/latest/) for packaging and managing the development environment.
+
+### Setup development environment
+
+```bash
+hatch env create
+hatch run -e default pytest
+```
+
+### Build package
+
+```bash
+hatch build
+# outputs: dist/*.whl and dist/*.tar.gz
+```
+
 ## Related projects
 
 - [iPixel-CFW](https://github.com/lucagoc/iPixel-CFW): CFW experimentation
