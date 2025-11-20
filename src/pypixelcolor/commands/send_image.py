@@ -1,9 +1,10 @@
 import logging
 import binascii
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from PIL import Image, ImageSequence
 from PIL.Image import Palette
+from enum import Enum
 from io import BytesIO
 from ..lib.transport.send_plan import SendPlan, Window
 from ..lib.device_info import DeviceInfo
@@ -18,6 +19,11 @@ except ImportError:
     pass
 
 logger = logging.getLogger(__name__)
+
+class ResizeMethod(Enum):
+    """Enumeration for image resize modes."""
+    CROP = "crop"
+    FIT = "fit"
 
 # Helper functions for byte-level transformations
 def _frame_size_bytes(length: int, size_hex_digits: int) -> bytes:
@@ -166,7 +172,7 @@ def _resize_and_fit_image(img: Image.Image, target_width: int, target_height: in
     return new_img
 
 
-def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_height: int, fit_mode: str = 'crop') -> bytes:
+def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_height: int, fit_mode: ResizeMethod = ResizeMethod.CROP) -> bytes:
     """Resize image to target dimensions while preserving aspect ratio (with center crop or fit).
     
     Args:
@@ -197,7 +203,7 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         return file_bytes
     
     if needs_resize:
-        resize_method = "fit with padding" if fit_mode == 'fit' else "crop"
+        resize_method = "fit with padding" if fit_mode == ResizeMethod.FIT else "crop"
         logger.info(f"Resizing image from {img.size[0]}x{img.size[1]} to {target_width}x{target_height} (preserving aspect ratio with {resize_method})")
     
     if needs_conversion:
@@ -216,10 +222,12 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
 
             # Resize frame if requested
             if needs_resize:
-                if fit_mode == 'fit':
+                if fit_mode == ResizeMethod.FIT:
                     processed = _resize_and_fit_image(f, target_width, target_height)
-                else:
+                elif fit_mode == ResizeMethod.CROP:
                     processed = _resize_and_crop_image(f, target_width, target_height)
+                else:
+                    raise ValueError(f"Unknown fit_mode: {fit_mode}")
             else:
                 processed = f
 
@@ -298,7 +306,7 @@ def _resize_image(file_bytes: bytes, is_gif: bool, target_width: int, target_hei
         return output.getvalue()
 
 # Main function to send image
-def send_image(path: Path, fit_mode: str = 'crop', device_info: Optional[DeviceInfo] = None):
+def send_image(path: Union[str, Path], resize_method: Union[str, ResizeMethod] = ResizeMethod.CROP, device_info: Optional[DeviceInfo] = None):
     """
     Send an image or animation.
     Supports:
@@ -310,7 +318,7 @@ def send_image(path: Path, fit_mode: str = 'crop', device_info: Optional[DeviceI
     Args:
         path_or_hex: Either a file path (str/Path) or hexadecimal string.
         device_info: Device information (injected automatically by DeviceSession).
-        fit_mode: Resize mode - 'crop' (default) or 'fit'. 
+        resize_method: Resize method - 'crop' (default) or 'fit'. 
                   'crop' will fill the entire target area and crop excess.
                   'fit' will fit the entire image with black padding.
         
@@ -321,7 +329,14 @@ def send_image(path: Path, fit_mode: str = 'crop', device_info: Optional[DeviceI
         If device_info is available, the image will be automatically resized
         to match the target device dimensions if necessary.
     """
-    path = Path(path)
+    
+    # Input normalization
+    if isinstance(resize_method, str):
+        resize_method = ResizeMethod(resize_method)
+    if isinstance(path, str):        
+        path = Path(path)
+    
+    # Load image data
     if path.exists() and path.is_file():
         file_bytes, is_gif = _load_from_file(path)
     else:
@@ -333,7 +348,7 @@ def send_image(path: Path, fit_mode: str = 'crop', device_info: Optional[DeviceI
             path = Path(path)
             if path.exists() and path.is_file():
                 # Only resize actual image files, not hex strings
-                file_bytes = _resize_image(file_bytes, is_gif, device_info.width, device_info.height, fit_mode)
+                file_bytes = _resize_image(file_bytes, is_gif, device_info.width, device_info.height, resize_method)
         except (ValueError, OSError):
             # If it's a hex string, skip resizing
             pass
@@ -372,7 +387,7 @@ def send_image(path: Path, fit_mode: str = 'crop', device_info: Optional[DeviceI
 
     return SendPlan("send_image", windows)
 
-def send_image_hex(hex_string: str, file_extension: str, fit_mode: str = 'crop', device_info: Optional[DeviceInfo] = None):
+def send_image_hex(hex_string: str, file_extension: str, fit_mode: ResizeMethod = ResizeMethod.CROP, device_info: Optional[DeviceInfo] = None):
     """
     Send an image or animation from a hexadecimal string.
     
