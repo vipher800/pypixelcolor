@@ -11,7 +11,7 @@ class FontConfig:
     
     name: str
     path: str
-    metrics: dict[int, dict]  # {height: {font_size, offset, is_16bit, pixel_threshold}}
+    metrics: dict[int, dict]  # {height: {font_size, offset, pixel_threshold}}
     
     def get_metrics(self, height: int) -> dict:
         """Get metrics for a specific height, with fallback to closest height."""
@@ -54,7 +54,6 @@ class FontConfig:
                 "16": {
                     "font_size": 16,
                     "offset": [0, 0],
-                    "is_16bit": false,
                     "pixel_threshold": 70
                 },
                 "20": { ... },
@@ -88,7 +87,6 @@ class FontConfig:
                 metrics[height] = {
                     "font_size": height,
                     "offset": (0, 0),
-                    "is_16bit": True,
                     "pixel_threshold": 70
                 }
             return cls(name=font_name, path=str(font_path), metrics=metrics)
@@ -120,7 +118,7 @@ class FontConfig:
                 raise ValueError(f"Invalid height key '{height_str}' in {json_path}, must be an integer")
             
             # Validate required fields
-            required_fields = ["font_size", "offset", "is_16bit", "pixel_threshold"]
+            required_fields = ["font_size", "offset", "pixel_threshold"]
             for field in required_fields:
                 if field not in metric_dict:
                     raise ValueError(f"Missing required field '{field}' for height {height} in {json_path}")
@@ -137,7 +135,6 @@ class FontConfig:
             metrics[height] = {
                 "font_size": int(metric_dict["font_size"]),
                 "offset": offset,
-                "is_16bit": bool(metric_dict["is_16bit"]),
                 "pixel_threshold": int(metric_dict["pixel_threshold"])
             }
         

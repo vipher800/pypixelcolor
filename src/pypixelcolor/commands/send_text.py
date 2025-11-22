@@ -221,16 +221,29 @@ def _encode_text(text: str, text_size: int, color: str, font_path: str, font_off
         char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
         # Build bytes for this character
-        if char_width <= 8:
-            result += bytes([0x00]) # 8px width, 16px height
-        elif text_size >= 32:
-            result += bytes([0x02]) # 32 height
-        else:
-            result += bytes([0x80]) # 16px width, 8px height
-        result += color_bytes
-        if char_width > 8 and text_size < 32:
-            result += bytes([char_width & 0xFF])
-            result += bytes([text_size & 0xFF])
+        if text_size == 32:
+            if char_width <= 16:
+                result += bytes([0x02]) # Char 32x16
+                result += color_bytes
+            elif char_width <= 32:
+                result += bytes([0x90]) # Char 32x32, used for emoji
+                result += color_bytes
+                result += bytes([char_width & 0xFF])
+                result += bytes([text_size & 0xFF])
+            else:
+                raise ValueError(f"Character width {char_width} exceeds maximum for 32px height.")
+        else: #  text_size == 16
+            if char_width <= 8:
+                result += bytes([0x00]) # Char 16x8
+                result += color_bytes
+            elif char_width <= 16:
+                result += bytes([0x80]) # Char 16x16, used for emoji
+                result += color_bytes
+                result += bytes([char_width & 0xFF])
+                result += bytes([text_size & 0xFF])
+            else:
+                raise ValueError(f"Character width {char_width} exceeds maximum for 16px height.")
+        
         result += char_bytes
 
     return bytes(result)
@@ -286,7 +299,6 @@ def send_text(text: str,
     metrics = font_config.get_metrics(char_height)
     font_size = metrics["font_size"]
     font_offset = metrics["offset"]
-    font_16bit = metrics["is_16bit"]
     pixel_threshold = metrics["pixel_threshold"]
     
     # properties: 3 fixed bytes + animation + speed + rainbow + 3 bytes color + 4 zero bytes
@@ -312,8 +324,8 @@ def send_text(text: str,
 
     # Disable unsupported animations (bootloop)
     if device_info and (device_info.height != 32 or device_info.width != 32):
-        if (int(animation) == 3 or int(animation) == 4) and font_16bit:
-            raise ValueError("This animation not supported with this font on non-32x32 devices.")
+        if (int(animation) == 3 or int(animation) == 4):
+            raise ValueError("This animation is not supported with this font on non-32x32 devices.")
 
     #---------------- BUILD PAYLOAD ----------------#
 
