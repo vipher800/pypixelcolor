@@ -317,38 +317,6 @@ def send_text(text: str,
 
     #---------------- BUILD PAYLOAD ----------------#
 
-    ########################
-    #        HEADER        #
-    ########################
-    
-    header = bytearray()
-                
-    # Magic formulas
-    if char_height <= 16:
-        header1_val = 29 + len(text) * (20 + (18 if font_16bit else 0))
-        header3_val = 14 + len(text) * (20 + (18 if font_16bit else 0))
-    elif char_height <= 20:
-        header1_val = 0x1D + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x01
-        header3_val = 0x0E + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x01
-    elif char_height <= 24:
-        header1_val = 0x1D + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x02
-        header3_val = 0x0E + len(text) * (0x04 + char_height * (0x1 if char_height <= 16 else 0x2)) + 0x02
-    else:
-        header1_val = 29 + len(text) * 68
-        header3_val = 14 + len(text) * 68
-    
-    header += header1_val.to_bytes(2, byteorder="little")
-    header += bytes([
-        0x00, # Reserved
-        0x01, # Reserved
-        0x00  # Reserved
-    ])
-    header += header3_val.to_bytes(2, byteorder="little")
-    header += bytes([
-        0x00,   # Reserved 
-        0x00    # Reserved
-    ])
-
     #########################
     #       PROPERTIES      #
     #########################
@@ -388,6 +356,26 @@ def send_text(text: str,
     
     # number_of_characters: single byte
     data_payload = bytes([len(text)]) + properties + characters_bytes
+
+    ########################
+    #        HEADER        #
+    ########################
+    
+    payload_size = len(data_payload)
+    total_size = payload_size + 15
+    
+    header = bytearray()
+    header += total_size.to_bytes(2, byteorder="little")
+    header += bytes([
+        0x00, # Reserved
+        0x01, # Reserved
+        0x00  # Reserved
+    ])
+    header += payload_size.to_bytes(2, byteorder="little")
+    header += bytes([
+        0x00,   # Reserved
+        0x00    # Reserved
+    ])
 
     #########################
     #        CHECKSUM       #
