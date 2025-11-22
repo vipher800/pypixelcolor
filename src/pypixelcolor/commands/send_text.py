@@ -311,8 +311,9 @@ def send_text(text: str,
             raise ValueError(f"{name} must be between {min_val} and {max_val} (got {param})")
 
     # Disable unsupported animations (bootloop)
-    if int(animation) == 3 or int(animation) == 4:
-        raise ValueError("Invalid animation for text display")
+    if device_info and (device_info.height != 32 or device_info.width != 32):
+        if (int(animation) == 3 or int(animation) == 4) and font_16bit:
+            raise ValueError("This animation not supported with this font on non-32x32 devices.")
 
     #---------------- BUILD PAYLOAD ----------------#
 
