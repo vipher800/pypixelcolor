@@ -6,11 +6,14 @@ import binascii
 from PIL import Image, ImageDraw, ImageFont
 from logging import getLogger
 from typing import Optional, Union
+from io import BytesIO
 
 # Locals
 from ..lib.transport.send_plan import single_window_plan
 from ..lib.device_info import DeviceInfo
 from ..lib.font_config import FontConfig, BUILTIN_FONTS
+
+EMOJI_FONT_PATH = "/usr/share/fonts/noto/NotoColorEmoji.ttf"
 
 logger = getLogger(__name__)
 
@@ -75,6 +78,16 @@ def _resolve_font_config(font: Union[str, FontConfig]) -> FontConfig:
     return BUILTIN_FONTS["CUSONG"]
 
 
+def is_emoji(char: str) -> bool:
+    code = ord(char)
+    return (0x1F600 <= code <= 0x1F64F or  # Emoticons
+            0x1F300 <= code <= 0x1F5FF or  # Misc Symbols and Pictographs
+            0x1F680 <= code <= 0x1F6FF or  # Transport and Map
+            0x1F1E6 <= code <= 0x1F1FF or  # Regional indicator symbols
+            0x2600 <= code <= 0x26FF or    # Misc symbols
+            0x2700 <= code <= 0x27BF)      # Dingbats
+
+
 def _charimg_to_hex_string(img: Image.Image) -> tuple[bytes, int]:
     """
     Convert a character image to a bytes representation (one line after another).
@@ -131,7 +144,7 @@ def _charimg_to_hex_string(img: Image.Image) -> tuple[bytes, int]:
     return bytes(data_bytes), char_width
 
 
-def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tuple[int, int], font_size: int, pixel_threshold: int) -> tuple[Optional[bytes], int]:
+def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tuple[int, int], font_size: int, pixel_threshold: int) -> tuple[Optional[bytes], int, bool]:
     """Convert a character to its hexadecimal representation.
     
     Args:
@@ -143,44 +156,96 @@ def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tu
         pixel_threshold (int): Threshold for converting grayscale to binary.
         
     Returns:
-        tuple: (hex_string, char_width)
+        tuple: (hex_string, char_width, is_emoji)
     """
 
-    try:
-        # Generate image with dynamic width
-        # First, create a temporary large image to measure text in grayscale
-        temp_img = Image.new('L', (100, char_size), 0)
-        temp_draw = ImageDraw.Draw(temp_img)
-        font_obj = ImageFont.truetype(font_path, font_size)
-        
-        # Get text bounding box
-        bbox = temp_draw.textbbox((0, 0), character, font=font_obj)
-        text_width = bbox[2] - bbox[0]
+    if is_emoji(character):
+        try:
+            # Use Pillow's embedded emoji renderer (CBDT/COLR tables)
+            # NotoColorEmoji uses CBDT format which requires special handling
+            font_obj = ImageFont.truetype(EMOJI_FONT_PATH, 109)
+            
+            # Create RGBA image to support transparency
+            img = Image.new('RGBA', (109, 109), (0, 0, 0, 0))
+            d = ImageDraw.Draw(img)
+            
+            # Try to render with embedded color (requires pillow-heif or recent Pillow)
+            try:
+                d.text((0, 0), character, font=font_obj, embedded_color=True)
+            except:
+                # Fallback: render without color
+                logger.warning("Could not render emoji with embedded color, using monochrome")
+                d.text((0, 0), character, fill=(255, 255, 255, 255), font=font_obj)
+            
+            # Crop to actual content
+            bbox = img.getbbox()
+            if bbox:
+                img = img.crop(bbox)
+            
+            # Resize to 16x16 and convert back to RGB
+            img = img.resize((16, 16), Image.Resampling.LANCZOS)
+            # Force RGB mode to ensure color JPEG
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Debug: save the image
+            img.save('/tmp/debug_emoji.png')
+            buffer = BytesIO()
+            # Save JPEG with Adobe format (used by official app)
+            # subsampling=0 means 4:4:4 (best quality, preserves colors)
+            img.save(buffer, format='JPEG', quality=95, subsampling=0, optimize=True)
+            jpeg_bytes = buffer.getvalue()
+            
+            # Remove JFIF header if present and replace with quantization tables only
+            # Official app uses raw JPEG without JFIF metadata
+            if jpeg_bytes[2:4] == b'\xff\xe0':  # JFIF marker
+                # Find DQT (Define Quantization Table) marker
+                dqt_pos = jpeg_bytes.find(b'\xff\xdb')
+                if dqt_pos > 0:
+                    # Rebuild JPEG: SOI + DQT + rest (skip JFIF)
+                    jpeg_bytes = b'\xff\xd8' + jpeg_bytes[dqt_pos:]
+            
+            return jpeg_bytes, 16, True
+        except Exception as e:
+            logger.error(f"Error rendering emoji {character}: {e}")
+            return None, 0, False
+    else:
+        try:
+            # Generate image with dynamic width
+            # First, create a temporary large image to measure text in grayscale
+            temp_img = Image.new('L', (100, char_size), 0)
+            temp_draw = ImageDraw.Draw(temp_img)
+            font_obj = ImageFont.truetype(font_path, font_size)
+            
+            # Get text bounding box
+            bbox = temp_draw.textbbox((0, 0), character, font=font_obj)
+            text_width = bbox[2] - bbox[0]
 
-        # Clamp text_width between min and max values to prevent crash
-        # Values tested on 16px height device
-        # Might be different for 20px or 24px devices
-        min_width = 1
-        max_width = 16
-        text_width = int(max(min_width, min(text_width, max_width)))
+            # Clamp text_width between min and max values to prevent crash
+            # Values tested on 16px height device
+            # Might be different for 20px or 24px devices
+            min_width = 1
+            max_width = 16
+            text_width = int(max(min_width, min(text_width, max_width)))
 
-        # Create final image in grayscale mode for pixel-perfect rendering
-        img = Image.new('L', (int(text_width), int(char_size)), 0)
-        d = ImageDraw.Draw(img)
-        
-        # Draw text in white (255) for pixel-perfect rendering
-        d.text(font_offset, character, fill=255, font=font_obj)
+            # Create final image in grayscale mode for pixel-perfect rendering
+            img = Image.new('L', (int(text_width), int(char_size)), 0)
+            d = ImageDraw.Draw(img)
+            
+            # Draw text in white (255) for pixel-perfect rendering
+            d.text(font_offset, character, fill=255, font=font_obj)
 
-        # Apply threshold for pixel-perfect conversion
-        def apply_threshold(pixel):
-            return 255 if pixel > pixel_threshold else 0
+            # Apply threshold for pixel-perfect conversion
+            def apply_threshold(pixel):
+                return 255 if pixel > pixel_threshold else 0
 
-        img = img.point(apply_threshold, mode='L')
+            img = img.point(apply_threshold, mode='L')
 
-        return _charimg_to_hex_string(img)
-    except Exception as e:
-        logger.error(f"Error occurred while converting character to hex: {e}")
-        return None, 0
+            bytes_data, width = _charimg_to_hex_string(img)
+            return bytes_data, width, False
+        except Exception as e:
+            logger.error(f"Error occurred while converting character to hex: {e}")
+            return None, 0, False
 
 
 def _encode_text(text: str, text_size: int, color: str, font_path: str, font_offset: tuple[int, int], font_size: int, pixel_threshold: int) -> bytes:
@@ -213,12 +278,13 @@ def _encode_text(text: str, text_size: int, color: str, font_path: str, font_off
 
     # Build each character block
     for char in text:
-        char_bytes, char_width = _char_to_hex(char, text_size, font_path, font_offset, font_size, pixel_threshold)
+        char_bytes, char_width, is_emoji_flag = _char_to_hex(char, text_size, font_path, font_offset, font_size, pixel_threshold)
         if not char_bytes:
             continue
 
-        # Apply byte-level transformations
-        char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
+        if not is_emoji_flag:
+            # Apply byte-level transformations
+            char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
 
         # Build bytes for this character
         if text_size == 32:
@@ -233,7 +299,12 @@ def _encode_text(text: str, text_size: int, color: str, font_path: str, font_off
             else:
                 raise ValueError(f"Character width {char_width} exceeds maximum for 32px height.")
         else: #  text_size == 16
-            if char_width <= 8:
+            if is_emoji_flag:
+                result += bytes([0x08]) # Special type for emoji
+                result += bytes([0xc1]) # Unknown
+                result += bytes([0x02]) # Unknown
+                result += bytes([0x00]) # Unknown
+            elif char_width <= 8:
                 result += bytes([0x00]) # Char 16x8
                 result += color_bytes
             elif char_width <= 16:
