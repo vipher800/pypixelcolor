@@ -165,34 +165,42 @@ def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tu
             # NotoColorEmoji uses CBDT format which requires special handling
             font_obj = ImageFont.truetype(EMOJI_FONT_PATH, 109)
             
-            # Create RGBA image to support transparency
-            img = Image.new('RGBA', (109, 109), (0, 0, 0, 0))
+            # Create larger RGBA image with plenty of space to avoid clipping
+            canvas_size = 150
+            img = Image.new('RGBA', (canvas_size, canvas_size), (0, 0, 0, 0))
             d = ImageDraw.Draw(img)
+            
+            # Calculate center position for the emoji
+            offset_x = (canvas_size - 109) // 2
+            offset_y = (canvas_size - 109) // 2
             
             # Try to render with embedded color (requires pillow-heif or recent Pillow)
             try:
-                d.text((0, 0), character, font=font_obj, embedded_color=True)
+                d.text((offset_x, offset_y), character, font=font_obj, embedded_color=True)
             except:
                 # Fallback: render without color
                 logger.warning("Could not render emoji with embedded color, using monochrome")
-                d.text((0, 0), character, fill=(255, 255, 255, 255), font=font_obj)
+                d.text((offset_x, offset_y), character, fill=(255, 255, 255, 255), font=font_obj)
             
             # Crop to actual content
             bbox = img.getbbox()
             if bbox:
                 img = img.crop(bbox)
             
-            # Resize to 16x16 and convert back to RGB
+            # Resize to 16x16 with high quality
             img = img.resize((16, 16), Image.Resampling.LANCZOS)
-            # Force RGB mode to ensure color JPEG
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
+            
+            # Convert RGBA to RGB with black background
+            background = Image.new('RGB', (16, 16), (0, 0, 0))
+            background.paste(img, mask=img.split()[3])  # Use alpha channel as mask
+            img = background
             
             # Debug: save the image
             img.save('/tmp/debug_emoji.png')
             buffer = BytesIO()
             # Save JPEG with Adobe format (used by official app)
             # subsampling=0 means 4:4:4 (best quality, preserves colors)
+            # quality=95 for high quality
             img.save(buffer, format='JPEG', quality=95, subsampling=0, optimize=True)
             jpeg_bytes = buffer.getvalue()
             
