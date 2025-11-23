@@ -42,7 +42,7 @@ client.disconnect()
 python -m pypixelcolor.websocket --help
 ```
 
-See the [wiki](https://github.com/lucagoc/iPixel-CLI/wiki) for more detailed usage instructions.
+See the [wiki](https://github.com/lucagoc/pypixelcolor/wiki) for more detailed usage instructions.
 
 ## Development
 
@@ -98,10 +98,10 @@ Check also these cool projects made by other developers:
 ## Contributing
 
 Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a pull request.
-To get started on how to dump BLE logs from an Android device, refer to the [How to get BLE logs](docs/How_to_get_BLE_logs.md) guide.
+To get started on how to dump BLE logs from an Android device, refer to the [How to get BLE logs](https://github.com/lucagoc/pypixelcolor/wiki/Tutorials#getting-ble-logs-from-an-android-device) guide.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/lucagoc/pypixelcolor/blob/main/LICENSE.md) file for details.
 
 This project is not affiliated with or endorsed by the original manufacturer of the iPixel devices or the official "iPixel Color" app.
