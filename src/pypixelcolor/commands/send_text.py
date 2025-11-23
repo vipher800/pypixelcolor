@@ -191,10 +191,12 @@ def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tu
             text_width = bbox[2] - bbox[0]
 
             # Clamp text_width between min and max values to prevent crash
-            # Values tested on 16px height device
-            # Might be different for 20px or 24px devices
-            min_width = 1
-            max_width = 16
+            if char_size == 32:
+                min_width = 9
+                max_width = 16
+            else:
+                min_width = 1
+                max_width = 16
             text_width = int(max(min_width, min(text_width, max_width)))
 
             # Create final image in grayscale mode for pixel-perfect rendering
