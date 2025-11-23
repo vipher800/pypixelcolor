@@ -316,7 +316,7 @@ def send_text(text: str,
         save_slot (int, optional): Save slot (1-10). Defaults to 1.
         speed (int, optional): Animation speed (0-100). Defaults to 80.
         color (str, optional): Text color in hex. Defaults to "ffffff".
-        font (str | FontConfig, optional): Built-in font name, file path, or FontConfig object. Defaults to "CUSONG".
+        font (str | FontConfig, optional): Built-in font name, file path, or FontConfig object. Defaults to "CUSONG". Built-in fonts are "CUSONG", "SIMSUN", "VCR_OSD_MONO".
         char_height (int, optional): Character height. Auto-detected from device_info if not specified.
         device_info (DeviceInfo, optional): Device information (injected automatically by DeviceSession).
 
