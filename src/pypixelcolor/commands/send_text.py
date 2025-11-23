@@ -151,7 +151,7 @@ def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tu
     if is_emoji(character):
         try:
             # Download and load emoji image from Twemoji
-            img = get_emoji_image(character, size=16)
+            img = get_emoji_image(character, size=char_size)
             
             if img is None:
                 logger.error(f"Failed to get emoji image for {character}")
@@ -174,7 +174,7 @@ def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tu
                     # Rebuild JPEG: SOI + DQT + rest (skip JFIF)
                     jpeg_bytes = b'\xff\xd8' + jpeg_bytes[dqt_pos:]
             
-            return jpeg_bytes, 16, True
+            return jpeg_bytes, char_size, True
         except Exception as e:
             logger.error(f"Error rendering emoji {character}: {e}")
             return None, 0, False
@@ -259,7 +259,7 @@ def _encode_text(text: str, text_size: int, color: str, font_path: str, font_off
         if text_size == 32:
             if is_emoji_flag:
                 jpeg_size = len(char_bytes)
-                result += bytes([0x90])  # Char 32x32, used for emoji
+                result += bytes([0x09])  # Char 32x32, used for emoji
                 result += jpeg_size.to_bytes(2, byteorder='little')  # Payload size
                 result += bytes([0x00])  # Reserved
             elif char_width <= 16:
