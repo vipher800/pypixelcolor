@@ -6,6 +6,8 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Build Status](https://github.com/lucagoc/pypixelcolor/actions/workflows/python-app.yml/badge.svg)](https://github.com/lucagoc/pypixelcolor/actions)
 [![Publish Status](https://github.com/lucagoc/pypixelcolor/actions/workflows/python-publish.yml/badge.svg)](https://github.com/lucagoc/pypixelcolor/actions)
+[![GitHub stars](https://img.shields.io/github/stars/lucagoc/pypixelcolor?style=social)](https://github.com/lucagoc/pypixelcolor/stargazers)
+
 
 `pypixelcolor` (also known as `iPixel-CLI`) is a Python library and CLI tool for controlling iPixel Color LED matrix devices via Bluetooth Low Energy. It allows you to send commands to the device to manipulate the LED display, retrieve device information, and more.
 
@@ -85,6 +87,8 @@ hatch run pytest
 hatch build
 ```
 
+> 💡 If your terminal doesn't support emojis, you can disable them with the `--noemojis` flag.
+
 ## Related projects
 
 - [iPixel-CFW](https://github.com/lucagoc/iPixel-CFW): CFW experimentation
@@ -96,17 +100,15 @@ Check also these cool projects made by other developers:
 - [iPixel-CLI-ESP32 (Cino2424)](https://github.com/Cino2424/iPixel-CLI-ESP32/tree/port-esp32): Another ESP32 port of this project
 - [go-ipxl (yyewolf)](https://github.com/yyewolf/go-ipxl): Go library implementation
 
-## Other
+## License
 
-> 💡 If your terminal doesn't support emojis, you can disable them with the `--noemojis` flag.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/lucagoc/pypixelcolor/blob/main/LICENSE.md) file for details.
+
+This project is not affiliated with or endorsed by the original manufacturer of the iPixel devices or the official "iPixel Color" app.
 
 ## Contributing
 
 Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a pull request.
 To get started on how to dump BLE logs from an Android device, refer to the [How to get BLE logs](https://github.com/lucagoc/pypixelcolor/wiki/Tutorials#getting-ble-logs-from-an-android-device) guide.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/lucagoc/pypixelcolor/blob/main/LICENSE.md) file for details.
-
-This project is not affiliated with or endorsed by the original manufacturer of the iPixel devices or the official "iPixel Color" app.
+[![Star History Chart](https://api.star-history.com/svg?repos=lucagoc/pypixelcolor&type=date&logscale&legend=bottom-right)](https://www.star-history.com/#lucagoc/pypixelcolor&type=date&logscale&legend=bottom-right)
