@@ -9,7 +9,7 @@ from typing import Optional, Union
 from io import BytesIO
 
 # Locals
-from ..lib.transport.send_plan import single_window_plan, SendPlan, Window
+from ..lib.transport.send_plan import SendPlan, Window
 from ..lib.device_info import DeviceInfo
 from ..lib.font_config import FontConfig, BUILTIN_FONTS
 from ..lib.emoji_manager import is_emoji, get_emoji_image
@@ -240,49 +240,6 @@ def _char_to_hex(character: str, char_size: int, font_path: str, font_offset: tu
             return None, False
 
 
-def _render_text_as_image(text: str, text_size: int, font_path: str, font_offset: tuple[int, int], font_size: int, pixel_threshold: int) -> Image.Image:
-    """Render the entire text string as a single PIL image.
-
-    Args:
-        text (str): The text to render.
-        text_size (int): The height of the text.
-        font_path (str): Path to the font file.
-        font_offset (tuple[int, int]): Font offset (x, y).
-        font_size (int): Font size for rendering.
-        pixel_threshold (int): Threshold for converting grayscale to binary.
-
-    Returns:
-        Image.Image: Rendered text as a binary (black/white) image.
-    """
-    # Create a temporary large image to measure text
-    temp_img = Image.new('L', (1000, text_size), 0)
-    temp_draw = ImageDraw.Draw(temp_img)
-    font_obj = ImageFont.truetype(font_path, font_size)
-
-    # Get text bounding box to determine actual width needed
-    bbox = temp_draw.textbbox((0, 0), text, font=font_obj)
-    text_width = bbox[2] - bbox[0]
-
-    # Add some padding to ensure we capture all pixels
-    text_width = int(text_width) + 4
-
-    # Create final image with exact dimensions needed
-    img = Image.new('L', (text_width, text_size), 0)
-    draw = ImageDraw.Draw(img)
-
-    # Draw text in white (255)
-    draw.text(font_offset, text, fill=255, font=font_obj)
-
-    # Apply threshold to convert to binary
-    def apply_threshold(pixel):
-        return 255 if pixel > pixel_threshold else 0
-
-    img = img.point(apply_threshold, mode='L')
-
-    logger.debug(f"Rendered text to image: {img.size[0]}x{img.size[1]} pixels")
-
-    return img
-
 
 def _split_image_into_chunks(img: Image.Image, chunk_width: int) -> list[Image.Image]:
     """Split a PIL image into fixed-width vertical chunks.
@@ -357,44 +314,105 @@ def _encode_character_block(char_bytes: bytes, text_size: int, color_bytes: byte
     return bytes(result)
 
 
-def _encode_text_chunked(chunks: list[Image.Image], text_size: int, color: str) -> bytes:
-    """Encode image chunks to be displayed on the device.
-
-    Each chunk is treated as a "character" and encoded with the appropriate headers.
-
+def _encode_text_chunked(text: str, matrix_height: int, color: str, font_path: str, font_offset: tuple[int, int], font_size: int, pixel_threshold: int, chunk_width: int, reverse: bool = False) -> bytes:
+    """Encode text with variable width chunks, handling both regular text and emojis.
+    
+    This function processes text segment by segment:
+    - Regular text portions are rendered as a continuous image and split into chunks
+    - Emojis are encoded as JPEG directly
+    
     Args:
-        chunks (list[Image.Image]): List of image chunks to encode.
-        text_size (int): The height of the chunks (matrix height).
+        text (str): The text to encode.
+        matrix_height (int): The height of the LED matrix.
         color (str): The color in hex format (e.g., 'ffffff').
-
+        font_path (str): Path to the font file.
+        font_offset (tuple[int, int]): The (x, y) offset for the font.
+        font_size (int): The font size for rendering.
+        pixel_threshold (int): Threshold for pixel conversion.
+        chunk_width (int): Width of each chunk in pixels.
+        reverse (bool): If True, reverses the order of items. Defaults to False.
+    
     Returns:
-        bytes: The encoded chunks as raw bytes ready to be appended to a payload.
+        bytes: The encoded text with chunks and emojis.
     """
-    result = bytearray()
-
     # Convert color to bytes
     try:
         color_bytes = bytes.fromhex(color)
     except Exception:
         raise ValueError(f"Invalid color hex: {color}")
-
-    # Validate color length
+    
     if len(color_bytes) != 3:
         raise ValueError("Color must be 3 bytes (6 hex chars), e.g. 'ffffff'")
-
-    # Encode each chunk
-    for chunk in chunks:
-        # Convert chunk to bitmap bytes
-        chunk_bytes = _encode_char_img(chunk)
-
-        # Apply byte-level transformations (same as for regular characters)
-        chunk_bytes = _logic_reverse_bits_order_bytes(chunk_bytes)
-
-        # Build bytes for this chunk (treating it like a character)
-        result += _encode_character_block(chunk_bytes, text_size, color_bytes, is_emoji=False)
-
+    
+    # First pass: collect all items (chunks and emojis) without reversing
+    items = []  # List of encoded character blocks
+    
+    # Segment text into regular text and emojis
+    segments = []  # List of (type, content) tuples
+    current_text = ""
+    
+    for char in text:
+        if is_emoji(char):
+            # Save current text segment if any
+            if current_text:
+                segments.append(("text", current_text))
+                current_text = ""
+            # Add emoji segment
+            segments.append(("emoji", char))
+        else:
+            current_text += char
+    
+    # Don't forget the last text segment
+    if current_text:
+        segments.append(("text", current_text))
+    
+    # Process each segment and collect items
+    for seg_type, seg_content in segments:
+        if seg_type == "emoji":
+            # Encode emoji as JPEG
+            char_bytes, is_emoji_flag = _char_to_hex(seg_content, matrix_height, font_path, font_offset, font_size, pixel_threshold)
+            if char_bytes:
+                items.append(_encode_character_block(char_bytes, matrix_height, color_bytes, is_emoji=True))
+        else:
+            # Render text segment and split into chunks
+            text_image = Image.new('L', (1000, matrix_height), 0)
+            text_draw = ImageDraw.Draw(text_image)
+            font_obj = ImageFont.truetype(font_path, font_size)
+            
+            # Draw text
+            text_draw.text(font_offset, seg_content, fill=255, font=font_obj)
+            
+            # Apply threshold
+            def apply_threshold(pixel):
+                return 255 if pixel > pixel_threshold else 0
+            text_image = text_image.point(apply_threshold, mode='L')
+            
+            # Get actual text width
+            bbox = text_draw.textbbox((0, 0), seg_content, font=font_obj)
+            text_width = bbox[2] - bbox[0] + 4
+            
+            # Crop to actual width
+            text_image = text_image.crop((0, 0, text_width, matrix_height))
+            
+            # Split into chunks
+            chunks = _split_image_into_chunks(text_image, chunk_width)
+            
+            # Encode each chunk as an item
+            for chunk in chunks:
+                char_bytes = _encode_char_img(chunk)
+                char_bytes = _logic_reverse_bits_order_bytes(char_bytes)
+                items.append(_encode_character_block(char_bytes, matrix_height, color_bytes, is_emoji=False))
+    
+    # Reverse items if needed (for RTL)
+    if reverse:
+        items.reverse()
+    
+    # Combine all items
+    result = bytearray()
+    for item in items:
+        result += item
+    
     return bytes(result)
-
 
 def _encode_text(text: str, matrix_height: int, color: str, font_path: str, font_offset: tuple[int, int], font_size: int, pixel_threshold: int, reverse: bool = False) -> bytes:
     """Encode text to be displayed on the device.
@@ -444,6 +462,9 @@ def _encode_text(text: str, matrix_height: int, color: str, font_path: str, font
         result += _encode_character_block(char_bytes, matrix_height, color_bytes, is_emoji=is_emoji_flag)
 
     return bytes(result)
+
+
+
 
 # Main function to send text command
 def send_text(text: str,
@@ -574,32 +595,56 @@ def send_text(text: str,
     #########################
 
     if var_width:
-        # Render full string to image
-        text_image = _render_text_as_image(
-            text,
-            char_height,
-            font_config.path,
-            font_offset,
-            font_size,
-            pixel_threshold
-        )
-
         # Determine chunk width based on char_height
         chunk_width = 8  if char_height <= 20 else 16
 
-        # Split image into fixed-width chunks
-        chunks = _split_image_into_chunks(text_image, chunk_width)
-        logger.info(f"Split rendered text into {len(chunks)} chunks")
+        # Encode text with chunks and emoji support
+        characters_bytes = _encode_text_chunked(
+            text,
+            char_height,
+            color,
+            font_config.path,
+            font_offset,
+            font_size,
+            pixel_threshold,
+            chunk_width,
+            reverse=rtl
+        )
 
-        # Reverse chunks for RTL display if requested
-        if rtl:
-            chunks = list(reversed(chunks))
-
-        # Encode chunks as if they were characters
-        characters_bytes = _encode_text_chunked(chunks, char_height, color)
-
-        # Number of "characters" is the number of chunks
-        num_chars = len(chunks)
+        # For num_chars in var_width mode, we count total "items" (chunks + emojis)
+        # We need to estimate this - count characters that produce chunks or emojis
+        # For simplicity, we'll encode first and adjust
+        # Actually, we need to count items generated. Let me count text segments + emojis
+        num_chars = 0
+        current_text = ""
+        for char in text:
+            if is_emoji(char):
+                if current_text:
+                    # Text segment will be split into chunks
+                    temp_img = Image.new('L', (1000, char_height), 0)
+                    temp_draw = ImageDraw.Draw(temp_img)
+                    font_obj = ImageFont.truetype(font_config.path, font_size)
+                    temp_draw.text(font_offset, current_text, fill=255, font=font_obj)
+                    bbox = temp_draw.textbbox((0, 0), current_text, font=font_obj)
+                    text_width = bbox[2] - bbox[0] + 4
+                    num_chunks = (text_width + chunk_width - 1) // chunk_width
+                    num_chars += num_chunks
+                    current_text = ""
+                # Emoji counts as 1
+                num_chars += 1
+            else:
+                current_text += char
+        
+        # Don't forget last text segment
+        if current_text:
+            temp_img = Image.new('L', (1000, char_height), 0)
+            temp_draw = ImageDraw.Draw(temp_img)
+            font_obj = ImageFont.truetype(font_config.path, font_size)
+            temp_draw.text(font_offset, current_text, fill=255, font=font_obj)
+            bbox = temp_draw.textbbox((0, 0), current_text, font=font_obj)
+            text_width = bbox[2] - bbox[0] + 4
+            num_chunks = (text_width + chunk_width - 1) // chunk_width
+            num_chars += num_chunks
     else:
         # Original character-by-character encoding
         characters_bytes = _encode_text(
