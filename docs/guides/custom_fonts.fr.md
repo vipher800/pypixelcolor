@@ -25,22 +25,20 @@ Un fichier doit être créé avec le même nom que le fichier TTF mais avec une 
     "16": {
       "font_size": 16,
       "offset": [0, 0],
-      "pixel_threshold": 70
-    },
-    "20": {
-      "font_size": 20,
-      "offset": [0, 0],
-      "pixel_threshold": 70
+      "pixel_threshold": 70,
+      "var_width": false 
     },
     "24": {
       "font_size": 24,
       "offset": [0, -1],
-      "pixel_threshold": 80
+      "pixel_threshold": 80,
+      "var_width": false
     },
     "32": {
       "font_size": 25,
       "offset": [0, 2],
-      "pixel_threshold": 85
+      "pixel_threshold": 85,
+      "var_width": false
     }
   }
 }
@@ -49,12 +47,13 @@ Un fichier doit être créé avec le même nom que le fichier TTF mais avec une 
 ### Structure du fichier JSON
 
 - `name` : Le nom de la police.
-- `metrics` : Un dictionnaire où chaque clé est une taille de hauteur de caractère (en pixels, 16, 20, 24 ou 32) et la valeur est un autre dictionnaire contenant :
+- `metrics` : Un dictionnaire où chaque clé est une taille de hauteur de caractère (en pixels, 16, 24 ou 32) et la valeur est un autre dictionnaire contenant :
   - `font_size` : La taille de la police à utiliser.
   - `offset` : Une liste de deux entiers représentant le décalage x et y pour le rendu de la police.
   - `pixel_threshold` : Une valeur entière qui détermine le seuil d'intensité des pixels pour le rendu de la police.
+  - `var_width` : Un booléen indiquant si la police est à largeur variable ou fixe.
 
-## Remarques
+## Notes
 
 - Assurez-vous que les fichiers TTF et JSON sont dans le même répertoire.
 - Les tailles de police spécifiées dans le fichier JSON doivent correspondre aux tailles que vous avez l'intention d'utiliser lors de l'envoi de texte.

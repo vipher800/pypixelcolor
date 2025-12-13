@@ -8,12 +8,17 @@ from ..lib.transport.send_plan import single_window_plan
 def set_time(hour: Optional[int] = None, minute: Optional[int] = None, second: Optional[int] = None):
     """
     Set the device time.
-    Note : Command is the same as get_device_info.
     
     Args:
         hour: Hour to set (0-23). If None, uses current hour.
         minute: Minute to set (0-59). If None, uses current minute.
         second: Second to set (0-59). If None, uses current second.
+        
+    Raises:
+        ValueError: If any parameter is out of range.
+        
+    Note:
+        Command is the same as get_device_info.
     """
     # Get current time if any component is None
     if hour is None or minute is None or second is None:

@@ -1,4 +1,6 @@
-# Démarrer avec la CLI
+# Bien démarrer avec le CLI
+
+## Scanner les appareils
 
 Trouvez l'adresse MAC de votre appareil en scannant les appareils Bluetooth à proximité :
 
@@ -6,7 +8,7 @@ Trouvez l'adresse MAC de votre appareil en scannant les appareils Bluetooth à p
 pypixelcolor --scan
 ```
 
-![Scanner les appareils](../assets/gifs/scan.gif)
+![Scan for devices](../assets/gifs/scan.gif)
 
 Si votre appareil est trouvé, notez son adresse MAC (par exemple, `30:E1:AF:BD:5F:D0`).
 
@@ -19,22 +21,30 @@ Si votre appareil est trouvé, notez son adresse MAC (par exemple, `30:E1:AF:BD:
 
 > Si votre appareil n'est pas trouvé, assurez-vous qu'il est allumé, à portée et non connecté à un autre appareil.
 
-Pour envoyer un message texte à votre appareil, utilisez la commande suivante, en remplaçant l'adresse MAC par celle de votre appareil :
+Voir [dépannage](../troubleshooting/bluetooth_connection.fr.md) pour plus d'aide.
+
+## Envoyer une commande
+
+Les commandes CLI sont envoyées en utilisant l'option `-c`, avec l'option `-a` ou `--address` pour spécifier l'adresse MAC de l'appareil cible.
+
+Par exemple, pour envoyer un message texte à votre appareil, utilisez la commande suivante, en remplaçant l'adresse MAC par celle de votre appareil :
 
 ```bash
-pypixelcolor -a <ADRESSE_MAC> -c send_text "Bonjour pypixelcolor"
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Bonjour pypixelcolor"
 ```
 
 Vous pouvez également ajouter des paramètres optionnels pour personnaliser l'affichage :
 
 ```bash
-pypixelcolor -a <ADRESSE_MAC> -c send_text "Bonjour pypixelcolor" animation=1 speed=100
+pypixelcolor -a <MAC_ADDRESS> -c send_text "Bonjour pypixelcolor" animation=1 speed=100
 ```
+
+Pour plus d'informations sur les commandes disponibles, consultez la page [Commandes](../commands/content.fr.md).
+
+## Utilisation avancée
 
 Vous pouvez exécuter plusieurs commandes en un seul appel. Par exemple, pour effacer l'affichage, régler la luminosité à 0 et passer en mode horloge, vous pouvez exécuter :
 
 ```bash
-pypixelcolor -a <ADRESSE_MAC> -c clear -c set_brightness 0 -c set_clock_mode
+pypixelcolor -a <MAC_ADDRESS> -c clear -c set_brightness 0 -c set_clock_mode
 ```
-
-Pour plus d'informations sur les commandes disponibles, consultez la page [Commandes](../commands.md).

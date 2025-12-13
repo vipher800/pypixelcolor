@@ -42,6 +42,8 @@ for device in devices:
     device.disconnect()
 ```
 
+### Asynchronous Usage
+
 You can send commands to multiple iPixel Color devices concurrently using asynchronous programming with the `asyncio` library. Below is an example of how to achieve this:
 
 ```python

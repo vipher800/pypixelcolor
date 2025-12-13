@@ -21,9 +21,9 @@ Before you start capturing BLE logs, you need to prepare your Android device.
 
 ### Enable Bluetooth HCI snoop log on your Android device
 
-Go to **Settings** > **Developer options**.
-Scroll down and set **Bluetooth HCI snoop log** to **Enabled**.
-Restart the bluetooth service by toggling Bluetooth off and then on again.
+- Go to **Settings** > **Developer options**.
+- Scroll down and set **Bluetooth HCI snoop log** to **Enabled**.
+- Restart the bluetooth service by toggling Bluetooth off and then on again.
 
 You can now do actions on your Android device that will generate BLE logs.
 
@@ -42,16 +42,19 @@ When you are done, follow these steps to retrieve the logs:
    You should see your device listed.
 
    *If you see "unauthorized", make sure to accept the USB debugging prompt on your Android device.*
+
 4. **Generate a bugreport** from your device by running:
 
    ```bash
-   adb bugreport 
+   adb bugreport
    ```
 
    This command will create a zip file containing various logs, including the Bluetooth HCI snoop log.
    The zip file will be saved in the current directory with a name like `bugreport-<device_name>-<timestamp>.zip`.
+
 5. **Extract the log** from the bug report by unzipping `FS/data/misc/bluetooth/logs/btsnoop_hci_<date>_<time>.log`.
-    If you only have a file named `btsnooz_hci.log`, data sent to BLE devices has been filtered from logging, make sure you set Bluetooth HCI snoop log to **Enabled** and restart your device.
+
+   If you only have a file named `btsnooz_hci.log`, data sent to BLE devices has been filtered from logging, make sure you set Bluetooth HCI snoop log to **Enabled** and restart your device.
 
 6. **Analyze the log file**:
    - You can open the `btsnoop_hci.log` file in Wireshark for analysis.

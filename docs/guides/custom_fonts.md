@@ -25,22 +25,20 @@ A file must be created named with the same name as the TTF file but with a `.jso
     "16": {
       "font_size": 16,
       "offset": [0, 0],
-      "pixel_threshold": 70
-    },
-    "20": {
-      "font_size": 20,
-      "offset": [0, 0],
-      "pixel_threshold": 70
+      "pixel_threshold": 70,
+      "var_width": false 
     },
     "24": {
       "font_size": 24,
       "offset": [0, -1],
-      "pixel_threshold": 80
+      "pixel_threshold": 80,
+      "var_width": false
     },
     "32": {
       "font_size": 25,
       "offset": [0, 2],
-      "pixel_threshold": 85
+      "pixel_threshold": 85,
+      "var_width": false
     }
   }
 }
@@ -49,10 +47,11 @@ A file must be created named with the same name as the TTF file but with a `.jso
 ### JSON File Structure
 
 - `name`: The name of the font.
-- `metrics`: A dictionary where each key is a character height size (in pixels, 16, 20, 24 or 32) and the value is another dictionary containing:
+- `metrics`: A dictionary where each key is a character height size (in pixels, 16, 24 or 32) and the value is another dictionary containing:
   - `font_size`: The size of the font to be used.
   - `offset`: A list of two integers representing the x and y offset for rendering the font.
   - `pixel_threshold`: An integer value that determines the pixel intensity threshold for rendering the font.
+  - `var_width`: A boolean indicating whether the font is variable width or fixed width.
 
 ## Notes
 

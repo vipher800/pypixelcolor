@@ -8,6 +8,7 @@ from ..lib.transport.send_plan import single_window_plan
 def set_clock_mode(style: int = 1, date="", show_date: bool = True, format_24: bool = True):
     """
     Set the clock mode of the device.
+    Time is set automatically during connection via Bluetooth.
 
     Args:
         style (int, optional): The clock style (0-8). Defaults to 1.

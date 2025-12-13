@@ -1,8 +1,8 @@
-# Utiliser pypixelcolor comme bibliothèque Python
+# Utiliser pypixelcolor comme une bibliothèque Python
 
 ## Utilisation de base
 
-Vous pouvez également utiliser `pypixelcolor` comme bibliothèque Python dans vos propres scripts.
+Vous pouvez également utiliser `pypixelcolor` comme une bibliothèque Python dans vos propres scripts.
 
 ```python
 import pypixelcolor
@@ -42,7 +42,9 @@ for device in devices:
     device.disconnect()
 ```
 
-Vous pouvez envoyer des commandes à plusieurs appareils iPixel Color simultanément en utilisant la programmation asynchrone avec la bibliothèque `asyncio`. Voici un exemple de la façon d'y parvenir :
+### Utilisation asynchrone
+
+Vous pouvez envoyer des commandes à plusieurs appareils iPixel Color simultanément en utilisant la programmation asynchrone avec la bibliothèque `asyncio`. Voici un exemple de la façon de procéder :
 
 ```python
 import asyncio
@@ -76,4 +78,4 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-> ⚠️ Les opérations de données lourdes (comme l'envoi d'images) ne sont pas stables lorsqu'elles sont effectuées simultanément sur plusieurs appareils en raison de limitations potentielles du backend Bluetooth.
+> ⚠️ Les opérations lourdes en données (comme l'envoi d'images) ne sont pas stables lorsqu'elles sont effectuées simultanément sur plusieurs appareils en raison des limitations potentielles du backend Bluetooth.
