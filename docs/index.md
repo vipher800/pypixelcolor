@@ -16,3 +16,6 @@
 - 🐍 **Scriptable**: Full Python library support for automation.
 - 🖥️ **CLI**: Easy to use command-line interface.
 
+!!! Warning
+    This is not the official software from iPixel Color. It is a third-party project developed independently.
+    I'm not responsible for any damage caused to your device while using this software. Use it at your own risk.

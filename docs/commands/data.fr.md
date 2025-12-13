@@ -1,5 +1,9 @@
 # Gestion des données
 
+!!! Warning "Précaution"
+    L'utilisation des slots peut entraîner des bootloops si la commande envoyer contient des données corrompues.
+    Avant d'envoyer des données à un slot, assurez-vous que l'envoi fonctionne correctement sans utiliser de slots.
+
 L'appareil fournit des "slots" pour stocker les données de texte et d'image.
 ![Emplacements des données](../assets/pngs/slots.png)
 

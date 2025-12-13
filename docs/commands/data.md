@@ -1,5 +1,9 @@
 # Managing Data
 
+!!! Warning
+    Using slots can cause bootloops if the send command contains corrupted data.
+    Before sending data to a slot, make sure that sending works correctly without using slots.
+
 The device provides "slots" to store the text and image data.
 ![Data slots](../assets/pngs/slots.png)
 

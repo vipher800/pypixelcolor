@@ -12,10 +12,12 @@
 
 ## Features
 
-- Send text, images
-- Control animations and effects
-- Retrieve device information
-- Scriptable via Python
+- 📝 **Send text**: Display custom messages with various fonts and animations.
+- 🖼️ **Send images**: Display images and GIFs on the matrix.
+- ⚙️ **Control settings**: Adjust brightness, orientation, and power.
+- ⏰ **Clock mode**: Display time with various clock faces.
+- 🐍 **Scriptable**: Full Python library support for automation.
+- 🖥️ **CLI**: Easy to use command-line interface.
 
 ## Installation
 
@@ -23,32 +25,7 @@
 pip install pypixelcolor
 ```
 
-## Usage
-
-### CLI
-
-```bash
-pypixelcolor --help
-```
-
-### Python Library
-
-```python
-import pypixelcolor
-
-client = pypixelcolor.Client("BLE_DEVICE_ADDRESS")
-client.connect()
-client.send_text("Hello, World!")
-client.disconnect()
-```
-
-### WebSocket server
-
-```bash
-python -m pypixelcolor.websocket --help
-```
-
-See the [wiki](https://github.com/lucagoc/pypixelcolor/wiki) for more detailed usage instructions.
+Check the [Wiki](https://lucagoc.github.io/pypixelcolor/main) for more detailed usage instructions.
 
 ## Development
 
@@ -87,17 +64,6 @@ hatch build
 ```
 
 > 💡 If your terminal doesn't support emojis, you can disable them with the `--noemojis` flag.
-
-## Related projects
-
-- [iPixel-CFW](https://github.com/lucagoc/iPixel-CFW): CFW experimentation
-- [iPixel-ESPHome](https://github.com/lucagoc/iPixel-ESPHome): ESPHome integration
-
-Check also these cool projects made by other developers:
-
-- [iPixel-ESP32 (ToBiDi0410)](https://github.com/ToBiDi0410/iPixel-ESP32): ESP32 port of this project
-- [iPixel-CLI-ESP32 (Cino2424)](https://github.com/Cino2424/iPixel-CLI-ESP32/tree/port-esp32): Another ESP32 port of this project
-- [go-ipxl (yyewolf)](https://github.com/yyewolf/go-ipxl): Go library implementation
 
 ## License
 

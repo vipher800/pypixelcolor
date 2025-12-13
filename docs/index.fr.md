@@ -15,3 +15,7 @@
 - ⏰ **Mode horloge** : Affichez l'heure avec différents cadrans.
 - 🐍 **Scriptable** : Support complet de la bibliothèque Python pour l'automatisation.
 - 🖥️ **CLI** : Interface en ligne de commande facile à utiliser.
+
+!!! Warning
+    Ceci n'est pas le logiciel officiel d'iPixel Color. C'est un projet tiers développé de manière indépendante.
+    Je ne suis pas responsable des dommages causés à votre appareil lors de l'utilisation de ce logiciel. Utilisez-le à vos propres risques.
