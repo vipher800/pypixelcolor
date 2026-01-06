@@ -10,7 +10,8 @@ from . import (
     set_power,
     send_text,
     send_image,
-    show_slot
+    show_slot,
+    scoreboard,
 )
 
 COMMANDS = {
@@ -29,4 +30,6 @@ COMMANDS = {
     "send_image_hex": send_image.send_image_hex,
     "set_power": set_power.set_power,
     "show_slot": show_slot.show_slot,
+    "set_scoreboard_teams": scoreboard.set_scoreboard_teams,
+    "set_scoreboard_score": scoreboard.set_scoreboard_score,
 }
