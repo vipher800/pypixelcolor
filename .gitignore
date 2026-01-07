@@ -1,6 +1,8 @@
 # General
 archive
 *.bak
+.DS_Store
+Thumbs.db
 
 # Cache
 __pycache__/
