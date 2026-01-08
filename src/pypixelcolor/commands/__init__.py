@@ -30,6 +30,5 @@ COMMANDS = {
     "send_image_hex": send_image.send_image_hex,
     "set_power": set_power.set_power,
     "show_slot": show_slot.show_slot,
-    "set_sb_teams": scoreboard.set_sb_teams,
     "set_sb_score": scoreboard.set_sb_score,
 }
